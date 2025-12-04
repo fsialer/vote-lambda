@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  vote-lambda
+
+  Sample SAM Template for vote-lambda
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 512
+
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+Resources:
+  VoteTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: VoteTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+  
+  SurveyCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: SurveyCreateFunction
+      Handler: surveycreate.App::handleRequest
+      Runtime: java21
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Environment:
+        Variables:
+          DB_TABLE_NAME: !Ref VoteTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VoteTable
+      Events:
+        SurveyCreate:
+          Type: Api
+          Properties:
+            Path: /survey/create
+            Method: post
+
+  VoteCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: VoteCreateFunction
+      Handler: votecreate.App::handleRequest
+      Runtime: java21
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Environment:
+        Variables:
+          DB_TABLE_NAME: !Ref VoteTable
+          REDIS_HOST: !Ref localhost
+          REDIS_PORT:  !Ref 6379
+          REDIS_SSL: !Ref false
+          QUEUE_URL: !Ref  http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/votes-queue
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VoteTable
+      Events:
+        SurveyCreate:
+          Type: Api
+          Properties:
+            Path: /vote/create
+            Method: post
+
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  SurveyCreateApi:
+    Description: API Gateway endpoint URL for Prod stage for Survey Create function
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/survey/create/"
+  SurveyCreateFunctionIamRole:
+    Description: Implicit IAM Role created for Survey Create function
+    Value: !GetAtt SurveyCreateFunctionRole.Arn
+  VoteCreateApi:
+    Description: API Gateway endpoint URL for Prod stage for Vote Create function
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/vote/create/"
+  VoteCreateFunctionIamRole:
+    Description: Implicit IAM Role created for Vote Create function
+    Value: !GetAtt VoteCreateFunctionRole.Arn

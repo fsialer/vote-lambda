@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - votacion-network
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    environment:
+      - SERVICES=lambda,sqs,dynamodb,s3
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack_data       # persistencia en volumen
+      - TMPDIR=/tmp/localstack_tmp          # tmp solo dentro del contenedor
+      - AWS_REGION=us-east-1
+      - LS_LAMBDA_EXECUTOR=local
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/tmp/localstack_data  # solo persistencia
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    networks:
+      - votacion-network
+
+networks:
+  votacion-network:
+    driver: bridge
+
+volumes:
+  localstack_data:

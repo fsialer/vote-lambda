@@ -1,0 +1,50 @@
+# Maven / Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+*.nb-gradle/
+
+# Logs
+*.log
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# AWS / Lambda
+.aws-sam/
+.env
+
+# Node / optional if using JS helpers
+node_modules/
+
+# Local temporary files
+*.tmp
+*.swp
+
+dependency-reduced-pom.xml
+**/target/
+
+samconfig.toml
+*.iml
+run-tests.bat
