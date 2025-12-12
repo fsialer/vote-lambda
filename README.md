@@ -1,127 +1,292 @@
-# vote-lambda
+# Vote Lambda - Sistema de Votaciones Serverless
 
-This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
+Sistema de votaciones distribuido construido con AWS Lambda, DynamoDB, Redis y SQS. Permite crear encuestas, votar y obtener resultados en tiempo real.
 
-- HelloWorldFunction/src/main - Code for the application's Lambda function.
-- events - Invocation events that you can use to invoke the function.
-- HelloWorldFunction/src/test - Unit tests for the application code. 
-- template.yaml - A template that defines the application's AWS resources.
+## 🏗️ Arquitectura
 
-The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ VoteCreate      │    │ PoolCreate      │    │ PoolGet         │
+│ Function        │    │ Function        │    │ Function        │
+│                 │    │                 │    │                 │
+│ POST /vote/     │    │ POST /pool/     │    │ GET /pool/{id}  │
+│ create          │    │ create          │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+       │                       │                       │
+       ▼                       ▼                       ▼
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              DynamoDB - VoteTable                                   │
+│  PK: POOL_{id} | SK: METADATA    → Pool metadata                                    │
+│  PK: POOL_{id} | SK: OP#{optId}  → Pool options                                     │
+│  PK: POOL_{id} | SK: OP_{optId}_vote  → Pool votes with vote counts                 │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+         │                       │                       │                       │
+         ▼                       ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Redis Cache     │    │ SQS Queue       │    │ Worker Function │    │ Redis Cache     │
+│ (Pool results)  │    │ (Vote events)   │    │ (Process votes) │    │ (Fast reads)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.  
-The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds a simplified step-through debugging experience for Lambda function code. See the following links to get started.
+## 🚀 Funciones Lambda
 
-* [CLion](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [GoLand](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [IntelliJ](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [WebStorm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [Rider](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [PhpStorm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [PyCharm](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [RubyMine](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [DataGrip](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)
-* [VS Code](https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/welcome.html)
-* [Visual Studio](https://docs.aws.amazon.com/toolkit-for-visual-studio/latest/user-guide/welcome.html)
+### 1. VoteCreateFunction
+**Propósito**: Registrar votos y enviarlos a cola SQS para procesamiento asíncrono.
 
-## Deploy the sample application
+**Endpoint**: `POST /vote/create`
 
-The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
+**Request Body**:
+```json
+{
+  "poolId": "POOL#uuid",
+  "optionId": 1,
+  "userId": "user123"
+}
+```
 
-To use the SAM CLI, you need the following tools.
+**Características**:
+- Validación de duplicados en Redis
+- Envío asíncrono a SQS
+- Cache de votos para prevenir duplicados
 
-* SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
-* java21 - [Install the Java 21](https://docs.aws.amazon.com/corretto/latest/corretto-21-ug/downloads-list.html)
-* Maven - [Install Maven](https://maven.apache.org/install.html)
-* Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
+### 2. PoolCreateFunction
+**Propósito**: Crear pools de votación basados en encuestas existentes.
 
-To build and deploy your application for the first time, run the following in your shell:
+**Endpoint**: `POST /pool/create`
 
+**Request Body**:
+```json
+{
+  "surveyId": "SURV#uuid",
+  "title": "Pool de votación activo"
+}
+```
+
+**Funcionalidad**:
+- Copia opciones de encuesta a pool
+- Inicializa contadores de votos
+- Configura TTL para expiración automática
+
+### 3. PoolGetFunction
+**Propósito**: Obtener resultados de votación en tiempo real.
+
+**Endpoint**: `GET /pool/{poolId}`
+
+**Response**:
+```json
+{
+  "poolId": "POOL#uuid",
+  "title": "Pool de votación",
+  "totalVotes": 150,
+  "options": [
+    {
+      "optionId": 1,
+      "description": "Java",
+      "votes": 75,
+      "percentage": 50.0
+    },
+    {
+      "optionId": 2,
+      "description": "Python",
+      "votes": 45,
+      "percentage": 30.0
+    }
+  ]
+}
+```
+
+**Características**:
+- Cache en Redis para respuestas rápidas
+- Fallback a DynamoDB si no hay cache
+- Cálculo automático de porcentajes
+
+### 4. WorkerFunction
+**Propósito**: Procesar votos de forma asíncrona desde SQS.
+
+**Trigger**: SQS Queue Events
+
+**Funcionalidad**:
+- Procesa votos en lotes
+- Actualiza contadores en DynamoDB
+- Invalida cache de Redis
+- Manejo de errores y reintentos
+
+## 🛠️ Tecnologías
+
+- **Runtime**: Java 21
+- **Framework**: AWS SAM
+- **Base de datos**: Amazon DynamoDB
+- **Cache**: Redis
+- **Cola de mensajes**: Amazon SQS
+- **Testing**: JUnit 4/5, Mockito, Testcontainers
+- **Build**: Maven
+
+## 📦 Estructura del Proyecto
+
+```
+vote-lambda/
+├── VoteCreateFunction/       # Registrar votos (votecreate.App)
+├── PoolCreateFunction/       # Crear pools (com.fernando.vote.poolcreate.App)
+├── PoolGetFunction/          # Obtener resultados (com.fernando.vote.poolget.App)
+├── WorkerFunction/           # Procesador asíncrono (com.fernando.vote.workerfunction.App)
+├── events/                   # Eventos de prueba
+├── template.yaml            # Infraestructura SAM
+├── docker-compose.yml       # Servicios locales
+└── run-tests.bat           # Script de testing
+```
+
+## 🚀 Instalación y Despliegue
+
+### Prerrequisitos
+- Java 21
+- Maven 3.8+
+- AWS SAM CLI
+- Docker
+- AWS CLI configurado
+
+### Desarrollo Local
+
+1. **Clonar repositorio**:
+```bash
+git clone <repository-url>
+cd vote-lambda
+```
+
+2. **Iniciar servicios locales**:
+```bash
+docker-compose up -d
+```
+
+3. **Construir proyecto**:
 ```bash
 sam build
+```
+
+4. **Ejecutar localmente**:
+```bash
+sam local start-api
+```
+
+5. **Ejecutar tests**:
+```bash
+run-tests.bat
+```
+
+### Despliegue en AWS
+
+1. **Despliegue inicial**:
+```bash
 sam deploy --guided
 ```
 
-The first command will build the source of your application. The second command will package and deploy your application to AWS, with a series of prompts:
-
-* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
-* **AWS Region**: The AWS region you want to deploy your app to.
-* **Confirm changes before deploy**: If set to yes, any change sets will be shown to you before execution for manual review. If set to no, the AWS SAM CLI will automatically deploy application changes.
-* **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modifies IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
-* **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
-
-You can find your API Gateway Endpoint URL in the output values displayed after deployment.
-
-## Use the SAM CLI to build and test locally
-
-Build your application with the `sam build` command.
-
+2. **Despliegues posteriores**:
 ```bash
-vote-lambda$ sam build
+sam deploy
 ```
 
-The SAM CLI installs dependencies defined in `HelloWorldFunction/pom.xml`, creates a deployment package, and saves it in the `.aws-sam/build` folder.
+## 🧪 Testing
 
-Test a single function by invoking it directly with a test event. An event is a JSON document that represents the input that the function receives from the event source. Test events are included in the `events` folder in this project.
-
-Run functions locally and invoke them with the `sam local invoke` command.
-
+### Tests Unitarios
 ```bash
-vote-lambda$ sam local invoke HelloWorldFunction --event events/event.json
+# Ejecutar todos los tests
+run-tests.bat
+
+# Test específico por función
+cd SurveyCreateFunction
+mvn test
 ```
 
-The SAM CLI can also emulate your application's API. Use the `sam local start-api` to run the API locally on port 3000.
+### Tests de Integración
+- Utiliza Testcontainers para DynamoDB Local
+- Simula eventos de API Gateway
+- Valida integración completa
 
+### Eventos de Prueba
 ```bash
-vote-lambda$ sam local start-api
-vote-lambda$ curl http://localhost:3000/
+# Crear encuesta
+sam local invoke SurveyCreateFunction --event events/survey-create-event.json
+
+# Registrar voto
+sam local invoke VoteCreateFunction --event events/send-vote.json
 ```
 
-The SAM CLI reads the application template to determine the API's routes and the functions that they invoke. The `Events` property on each function's definition includes the route and method for each path.
+## 📊 Modelo de Datos DynamoDB
 
+### Tabla: VoteTable
+
+| PK        | SK              | Atributos             | Descripción          |
+|-----------|-----------------|-----------------------|----------------------|
+| POOL_{id} | METADATA        | question, active, ttl | Metadatos de encuesta |
+| POOL_{id} | OP_{optId}      | text                  | Opciones de encuesta |
+| POOL#{id} | OP_{optId}_vote | votes, ttl            | Votes de encuesta    |
+
+### Patrones de Acceso
+- **Crear pool**: Transacción para POOL_ + opciones
+- **Votar**: Incremento atómico en POOL_
+- **Obtener resultados**: Query por PK=POOL_{id}
+
+## 🔧 Configuración
+
+### Variables de Entorno
 ```yaml
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: get
+DB_TABLE_NAME: PoolTable
+REDIS_HOST: localhost
+REDIS_PORT: 6379
+REDIS_SSL: false
+QUEUE_URL: http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/votes-queue
 ```
 
-## Add a resource to your application
-The application template uses AWS Serverless Application Model (AWS SAM) to define application resources. AWS SAM is an extension of AWS CloudFormation with a simpler syntax for configuring common serverless application resources such as functions, triggers, and APIs. For resources not included in [the SAM specification](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md), you can use standard [AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html) resource types.
+### Servicios Locales (docker-compose.yml)
+- **DynamoDB Local**: Puerto 8000
+- **Redis**: Puerto 6379
+- **LocalStack SQS**: Puerto 4566
 
-## Fetch, tail, and filter Lambda function logs
+## 📈 Monitoreo y Logs
 
-To simplify troubleshooting, SAM CLI has a command called `sam logs`. `sam logs` lets you fetch logs generated by your deployed Lambda function from the command line. In addition to printing the logs on the terminal, this command has several nifty features to help you quickly find the bug.
+### CloudWatch Logs
+- Logs estructurados en JSON
+- Métricas de latencia y errores
+- Alertas configurables
 
-`NOTE`: This command works for all AWS Lambda functions; not just the ones you deploy using SAM.
+### Métricas Clave
+- Tiempo de respuesta por función
+- Tasa de errores
+- Throughput de votación
+- Utilización de cache
 
-```bash
-vote-lambda$ sam logs -n HelloWorldFunction --stack-name vote-lambda --tail
-```
+## 🔒 Seguridad
 
-You can find more information and examples about filtering Lambda function logs in the [SAM CLI Documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-logging.html).
+### IAM Policies
+- Acceso mínimo necesario por función
+- Separación de permisos por recurso
+- Roles específicos por Lambda
 
-## Unit tests
+### Validación
+- Validación de entrada con Bean Validation
+- Sanitización de datos
+- Prevención de votos duplicados
 
-Tests are defined in the `HelloWorldFunction/src/test` folder in this project.
+## 🚦 Flujo de Votación
 
-```bash
-vote-lambda$ cd HelloWorldFunction
-HelloWorldFunction$ mvn test
-```
+1. **Crear Pool** → PoolCreateFunction (basado en encuesta)
+2. **Votar** → VoteCreateFunction (envía a SQS)
+3. **Procesar Voto** → WorkerFunction (actualiza contadores)
+4. **Ver Resultados** → PoolGetFunction (desde cache/DB)
 
-## Cleanup
+## 📝 Contribución
 
-To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
+1. Fork del repositorio
+2. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
+3. Commit cambios: `git commit -am 'Agregar nueva funcionalidad'`
+4. Push a la rama: `git push origin feature/nueva-funcionalidad`
+5. Crear Pull Request
 
-```bash
-sam delete --stack-name vote-lambda
-```
+## 📄 Licencia
 
-## Resources
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
-See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
+## 🆘 Soporte
 
-Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
+Para reportar bugs o solicitar features, crear un issue en el repositorio de GitHub.
+
+---
