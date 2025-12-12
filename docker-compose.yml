@@ -13,12 +13,14 @@ services:
     image: localstack/localstack:latest
     container_name: localstack
     environment:
-      - SERVICES=lambda,sqs,dynamodb,s3
+      - SERVICES=apigateway,lambda,sqs,dynamodb,s3,sns
       - DEBUG=1
       - DATA_DIR=/tmp/localstack_data       # persistencia en volumen
       - TMPDIR=/tmp/localstack_tmp          # tmp solo dentro del contenedor
       - AWS_REGION=us-east-1
       - LS_LAMBDA_EXECUTOR=local
+      - LAMBDA_DOCKER_NETWORK=votacion-network
+      - LAMBDA_REMOVE_CONTAINERS=1
     ports:
       - "4566:4566"
     volumes:
@@ -30,6 +32,7 @@ services:
 
 networks:
   votacion-network:
+    name: votacion-network
     driver: bridge
 
 volumes:

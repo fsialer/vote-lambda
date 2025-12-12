@@ -1,37 +1,41 @@
-package votecreate;
+package com.fernando.vote.poolcreate;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fernando.vote.poolcreate.mapper.PoolMapper;
+import com.fernando.vote.poolcreate.models.Pool;
+import com.fernando.vote.poolcreate.models.PoolRequest;
+import com.fernando.vote.poolcreate.services.IPoolService;
+import com.fernando.vote.poolcreate.services.impl.IPoolServiceImpl;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import votecreate.mapper.VoteMapper;
-import votecreate.models.VoteRequest;
-import votecreate.services.IVoteService;
-import votecreate.services.impl.VoteService;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Hello world!
+ */
 public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
-
     private final ObjectMapper objectMapper=new ObjectMapper();
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final Validator validator = factory.getValidator();
-    private final IVoteService iVoteService;
+    private final IPoolService iPoolService;
 
     public App() {
-        this.iVoteService = saveVoteUseCase();
+        this.iPoolService = createVoteService();
     }
 
-    protected IVoteService saveVoteUseCase() {
-        return new VoteService();
+    protected IPoolService createVoteService() {
+        return new IPoolServiceImpl();
     }
 
     @Override
@@ -39,10 +43,11 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
         try {
+            // Deserializar JSON a objeto VoteEvent
             String body=apiGatewayProxyRequestEvent.getBody(); // Aqui obtenemos el cuerpo de la solicitud
-            VoteRequest rq=objectMapper.readValue(body,VoteRequest.class);
+            PoolRequest rq=objectMapper.readValue(body, PoolRequest.class);
             //Validar campos
-            Set<ConstraintViolation<VoteRequest>> violations = validator.validate(rq);
+            Set<ConstraintViolation<PoolRequest>> violations = validator.validate(rq);
             if(!violations.isEmpty()){
                 String errors=violations.stream()
                         .map(ConstraintViolation::getMessage)
@@ -52,23 +57,18 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
                         .withHeaders(headers)
                         .withBody("{\"error\": \""+errors+"\"}");
             }
-            VoteMapper voteMapper=new VoteMapper();
-            Long vote= iVoteService.saveVote(voteMapper.voteRequestToVote(rq));
-            iVoteService.sendMessage(voteMapper.voteRequestToVote(rq));
-            // Respuesta exitosa
-            Map<String,String> resp= new HashMap<>();
-            resp.put("vote",vote.toString());
-            resp.put("message","Vote sent successfully");
+            // Map para DynamoDB
+            PoolMapper mapper=new PoolMapper();
+            Pool resp= iPoolService.createPool(mapper.poolRequestToPool(rq));
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(201)
                     .withHeaders(Map.of("Content-Type","application/json"))
                     .withBody(objectMapper.writeValueAsString(resp));
 
-
-        }catch (Exception e){
+        } catch (JsonProcessingException e) {
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(500)
-                    .withHeaders(headers)
+                    .withHeaders(Map.of("Content-Type", "application/json"))
                     .withBody("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }

@@ -1,27 +1,27 @@
 package votecreate.services.impl;
 
-import redis.clients.jedis.JedisPooled;
 import votecreate.event.QueueRepository;
 import votecreate.event.impl.QueueRepositoryImpl;
-import votecreate.models.OptionEvent;
-import votecreate.repository.OptionRepository;
-import votecreate.repository.impl.OptionRepositoryImpl;
-import votecreate.services.SaveVoteUseCase;
+import votecreate.models.Vote;
+import votecreate.repository.CacheRepository;
+import votecreate.repository.impl.CacheRepositoryImpl;
+import votecreate.services.IVoteService;
 
-public class VoteService implements SaveVoteUseCase {
-    private final OptionRepository optionRepository;
+public class VoteService implements IVoteService {
+    private final CacheRepository cacheRepository;
     private final QueueRepository queueRepository;
     public VoteService(){
-        optionRepository= new OptionRepositoryImpl();
+        cacheRepository = new CacheRepositoryImpl();
         queueRepository=new QueueRepositoryImpl();
     }
     @Override
-    public Long saveVote(String key) {
-        return optionRepository.saveVote(key);
+    public Long saveVote(Vote vote) {
+        String key="votes:"+vote.getPoolId();
+        return cacheRepository.hashIncrement(key,1,vote.getOptionId());
     }
 
     @Override
-    public void sendMessage(OptionEvent event) {
-        queueRepository.sendMessage(event);
+    public void sendMessage(Vote vote) {
+        queueRepository.sendMessage(vote.getPoolId());
     }
 }
