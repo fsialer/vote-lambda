@@ -43,12 +43,12 @@ public class PoolRepositoryImpl implements PoolRepository {
         Set<Option> list = new HashSet<>();
         for (Map<String, AttributeValue> item : items) {
             if (item.containsKey("SK")){
-                if(item.get("SK").getS().contains("METADATA")){
+                if(item.get("SK").getS().equals("METADATA")){
                     pool.setPoolId(item.get("PK").getS());
                     pool.setQuestion(item.get("question").getS());
                     pool.setActive(item.get("active").getBOOL());
                 }
-                if(item.get("SK").getS().contains("OP_")){
+                if(item.get("SK").getS().startsWith("OP_") && !item.get("SK").getS().endsWith("_VOTE")){
                     list.add(Option.builder()
                             .optionId(item.get("SK").getS())
                             .text(item.get("text").getS())
