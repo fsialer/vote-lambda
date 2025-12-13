@@ -33,7 +33,7 @@ public class VoteRepositoryImpl implements VoteRepository {
             hash.forEach((key2, value) -> {
                 Map<String, AttributeValue> key = new HashMap<>();
                 key.put("PK", new AttributeValue(key1));
-                key.put("SK", new AttributeValue(key2+"#vote"));
+                key.put("SK", new AttributeValue(key2+"_VOTE"));
                 key.put("votes", new AttributeValue().withN(value));
                 writeRequests.add(new WriteRequest(new PutRequest(key)));
             });
