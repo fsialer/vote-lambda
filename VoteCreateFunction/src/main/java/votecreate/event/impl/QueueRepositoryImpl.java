@@ -7,8 +7,11 @@ import votecreate.event.QueueRepository;
 
 public class QueueRepositoryImpl implements QueueRepository {
     private static final String QUEUE_URL = System.getenv("QUEUE_URL");
-    private static final SqsClient client = SqsConfig.getSqsClient();
+    private final SqsClient client;
 
+    public QueueRepositoryImpl(){
+        client = SqsConfig.getClient();
+    }
 
     @Override
     public void sendMessage(String message) {
