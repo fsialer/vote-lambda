@@ -19,7 +19,7 @@ public class PoolRepositoryImpl implements PoolRepository {
     private final long currentTime=System.currentTimeMillis();
 
     public PoolRepositoryImpl() {
-        this.dynamoDB = DynamoConfig.getAmazonDynamoDB();
+        this.dynamoDB = DynamoConfig.getClient();
         this.tableName = getTableName();
     }
 
