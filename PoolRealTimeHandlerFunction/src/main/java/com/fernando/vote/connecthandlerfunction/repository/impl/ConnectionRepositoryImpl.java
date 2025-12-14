@@ -16,7 +16,7 @@ public class ConnectionRepositoryImpl implements ConnectionRepository {
     private final long currentTime=System.currentTimeMillis();
 
     public ConnectionRepositoryImpl() {
-        this.dynamoDB = DynamoConfig.getAmazonDynamoDB();
+        this.dynamoDB = DynamoConfig.getClient();
         this.tableName = getTableName();
     }
 
