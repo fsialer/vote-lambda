@@ -6,8 +6,11 @@ import votecreate.config.SnsConfig;
 import votecreate.event.SnsRepository;
 
 public class SnsRepositoryImpl implements SnsRepository {
-    private static final SnsClient client = SnsConfig.getSnsClient();
+    private final SnsClient client;
     private static final String TOPIC_ARN = System.getenv("TOPIC_ARN");
+    public SnsRepositoryImpl(){
+        client = SnsConfig.getClient();
+    }
     @Override
     public void sendMessage(String message) {
         client.publish(PublishRequest.builder()
