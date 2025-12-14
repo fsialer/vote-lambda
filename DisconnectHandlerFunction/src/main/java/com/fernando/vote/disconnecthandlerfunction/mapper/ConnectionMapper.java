@@ -1,9 +1,10 @@
-package com.fernando.vote.connecthandlerfunction.mapper;
+package com.fernando.vote.disconnecthandlerfunction.mapper;
 
-import com.fernando.vote.connecthandlerfunction.models.ConnectionClient;
+
+import com.fernando.vote.disconnecthandlerfunction.models.ConnectionClient;
 
 public class ConnectionMapper {
-    public ConnectionClient connectIdPoolIdToConnectionClient(String connectionId,String poolId){
+    public ConnectionClient connectIdPoolIdToConnectionClient(String connectionId, String poolId){
         return ConnectionClient.builder()
                 .connectionId(connectionId)
                 .poolId(poolId)

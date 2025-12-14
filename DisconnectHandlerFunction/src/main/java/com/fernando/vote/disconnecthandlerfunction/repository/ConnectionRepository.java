@@ -1,8 +1,8 @@
-package com.fernando.vote.connecthandlerfunction.repository;
+package com.fernando.vote.disconnecthandlerfunction.repository;
 
 
-import com.fernando.vote.connecthandlerfunction.models.ConnectionClient;
+import com.fernando.vote.disconnecthandlerfunction.models.ConnectionClient;
 
 public interface ConnectionRepository {
-    void saveConnection(ConnectionClient connectionClient);
+    void deleteConnectionByConnectionId(String connectionId);
 }

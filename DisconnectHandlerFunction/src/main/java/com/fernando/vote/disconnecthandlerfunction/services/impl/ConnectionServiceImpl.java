@@ -1,9 +1,10 @@
-package com.fernando.vote.connecthandlerfunction.services.impl;
+package com.fernando.vote.disconnecthandlerfunction.services.impl;
 
-import com.fernando.vote.connecthandlerfunction.models.ConnectionClient;
-import com.fernando.vote.connecthandlerfunction.repository.ConnectionRepository;
-import com.fernando.vote.connecthandlerfunction.repository.impl.ConnectionRepositoryImpl;
-import com.fernando.vote.connecthandlerfunction.services.ConnectionService;
+
+import com.fernando.vote.disconnecthandlerfunction.models.ConnectionClient;
+import com.fernando.vote.disconnecthandlerfunction.repository.ConnectionRepository;
+import com.fernando.vote.disconnecthandlerfunction.repository.impl.ConnectionRepositoryImpl;
+import com.fernando.vote.disconnecthandlerfunction.services.ConnectionService;
 
 public class ConnectionServiceImpl implements ConnectionService {
     private final ConnectionRepository connectionRepository;
@@ -12,7 +13,7 @@ public class ConnectionServiceImpl implements ConnectionService {
         connectionRepository=new ConnectionRepositoryImpl();
     }
     @Override
-    public void registerConnection(ConnectionClient connectionClient) {
-        connectionRepository.saveConnection(connectionClient);
+    public void deleteConnection(String connectionId) {
+        connectionRepository.deleteConnectionByConnectionId(connectionId);
     }
 }
