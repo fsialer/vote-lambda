@@ -6,25 +6,24 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import lombok.Getter;
 
 public class DynamoConfig {
-    @Getter
     private static AmazonDynamoDB amazonDynamoDB;
 
-    static {
-        String region=System.getenv("REGION");
-        String localstackConnection=System.getenv("LOCALSTACK_CONNECTION");
+    private static void init() {
+        String region = System.getenv("REGION");
+        String localstackConnection = System.getenv("LOCALSTACK_CONNECTION");
         String accessKey=System.getenv("ACCESS_KEY");
         String secretKey=System.getenv("SECRET_KEY");
-        if(localstackConnection==null || localstackConnection.isEmpty()){
+
+        if (localstackConnection == null || localstackConnection.isBlank()) {
             amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
                     .withRegion(Regions.valueOf(region))
                     .build();
-        }else{
+        } else {
             amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
                     .withEndpointConfiguration(
-                            new AwsClientBuilder.EndpointConfiguration(localstackConnection,region)
+                            new AwsClientBuilder.EndpointConfiguration(localstackConnection, region)
                     )
                     .withCredentials(
                             new AWSStaticCredentialsProvider(
@@ -35,4 +34,10 @@ public class DynamoConfig {
         }
     }
 
+    public static AmazonDynamoDB getClient() {
+        if (amazonDynamoDB == null) {
+            init();
+        }
+        return amazonDynamoDB;
+    }
 }
