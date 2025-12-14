@@ -13,9 +13,6 @@ import java.util.Set;
  * Hello world!
  */
 public class App implements RequestHandler<SQSEvent, String> {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
 
     @Override
     public String handleRequest(SQSEvent sqsEvent, Context context) {
