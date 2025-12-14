@@ -3,7 +3,6 @@ package com.fernando.vote.workerfunction.repository.impl;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.*;
 import com.fernando.vote.workerfunction.config.DynamoConfig;
-import com.fernando.vote.workerfunction.models.PoolId;
 import com.fernando.vote.workerfunction.repository.VoteRepository;
 
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ public class VoteRepositoryImpl implements VoteRepository {
     private final long currentTime=System.currentTimeMillis();
 
     public VoteRepositoryImpl() {
-        this.dynamoDB = DynamoConfig.getAmazonDynamoDB();
+        this.dynamoDB = DynamoConfig.getClient();
         this.tableName = getTableName();
     }
 
