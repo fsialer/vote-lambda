@@ -3,11 +3,11 @@ package com.fernando.vote.connecthandlerfunction.models;
 import lombok.*;
 
 @Getter
-Setter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Connection {
+public class ConnectionClient {
     private String connectionId;
     private String poolId;
 }
