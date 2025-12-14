@@ -55,6 +55,7 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
             VoteMapper voteMapper=new VoteMapper();
             Long vote= iVoteService.saveVote(voteMapper.voteRequestToVote(rq));
             iVoteService.sendMessage(voteMapper.voteRequestToVote(rq));
+            iVoteService.publishMessage(voteMapper.voteRequestToVote(rq));
             // Respuesta exitosa
             Map<String,String> resp= new HashMap<>();
             resp.put("vote",vote.toString());
