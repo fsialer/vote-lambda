@@ -1,8 +1,9 @@
-package com.fernando.vote.connecthandlerfunction.events;
+package com.fernando.vote.connecthandlerfunction.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import lombok.Getter;
@@ -13,20 +14,26 @@ public class DynamoConfig {
 
     static {
         String region=System.getenv("REGION");
-        String connectionUrl=System.getenv("CONNECTION_URL");
+        String localstackConnection=System.getenv("LOCALSTACK_CONNECTION");
         String accessKey=System.getenv("ACCESS_KEY");
         String secretKey=System.getenv("SECRET_KEY");
-        amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
-                .withEndpointConfiguration(
-                        new AwsClientBuilder.EndpointConfiguration(connectionUrl,region)
-                )
-                .withCredentials(
-                        new AWSStaticCredentialsProvider(
-                                new BasicAWSCredentials(accessKey, secretKey)
-                        )
-                )
-                //.withRegion(region)
-                .build();
+        if(localstackConnection==null || localstackConnection.isEmpty()){
+            amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
+                    .withRegion(Regions.valueOf(region))
+                    .build();
+        }else{
+            amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
+                    .withEndpointConfiguration(
+                            new AwsClientBuilder.EndpointConfiguration(localstackConnection,region)
+                    )
+                    .withCredentials(
+                            new AWSStaticCredentialsProvider(
+                                    new BasicAWSCredentials(accessKey, secretKey)
+                            )
+                    )
+                    .build();
+        }
+
     }
 
 }
