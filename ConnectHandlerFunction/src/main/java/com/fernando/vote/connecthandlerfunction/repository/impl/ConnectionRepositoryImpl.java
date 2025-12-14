@@ -12,7 +12,7 @@ public class ConnectionRepositoryImpl implements ConnectionRepository {
     private final AmazonDynamoDB dynamoDB;
     private final String tableName;
     public ConnectionRepositoryImpl(){
-        dynamoDB= DynamoConfig.getAmazonDynamoDB();
+        dynamoDB= DynamoConfig.getClient();
         tableName=System.getenv("DB_TABLE_NAME");
     }
 
