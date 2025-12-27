@@ -1,4 +1,4 @@
-package com.fernando.vote.connecthandlerfunction.repository;
+package com.fernando.vote.poolrealtimehandlerfunction.repository;
 
 import java.util.Map;
 

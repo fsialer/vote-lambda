@@ -62,14 +62,20 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
             resp.put("message","Vote sent successfully");
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(201)
-                    .withHeaders(Map.of("Content-Type","application/json"))
+                    .withHeaders(Map.of("Content-Type","application/json",
+                            "Access-Control-Allow-Origin", "*",
+                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+                            "Access-Control-Allow-Methods", "OPTIONS,POST"))
                     .withBody(objectMapper.writeValueAsString(resp));
 
 
         }catch (Exception e){
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(500)
-                    .withHeaders(headers)
+                    .withHeaders(Map.of("Content-Type","application/json",
+                            "Access-Control-Allow-Origin", "*",
+                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+                            "Access-Control-Allow-Methods", "OPTIONS,POST"))
                     .withBody("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }

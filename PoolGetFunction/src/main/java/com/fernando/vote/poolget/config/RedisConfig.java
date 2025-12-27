@@ -1,33 +1,34 @@
 package com.fernando.vote.poolget.config;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.*;
+
+import java.util.Set;
 
 public class RedisConfig {
-    private static JedisPool jedisPool;
+    private static JedisCluster jedisCluster;
 
     private static void init() {
         String host = System.getenv("REDIS_HOST");
         int port = Integer.parseInt(System.getenv("REDIS_PORT"));
         String password = System.getenv("REDIS_PASSWORD");
 
-        JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(10);
-        poolConfig.setMaxIdle(5);
-        poolConfig.setMinIdle(1);
+        HostAndPort node = new HostAndPort(host, port);
+        Set<HostAndPort> nodes = Set.of(node);
 
-        if (password == null || password.isBlank()) {
-            jedisPool = new JedisPool(poolConfig, host, port, 5000);
-        } else {
-            jedisPool = new JedisPool(poolConfig, host, port, 5000, password, true);
-        }
+        JedisClientConfig clientConfig = DefaultJedisClientConfig.builder()
+                //.password(password)
+                .ssl(true)                 // 🔥 OBLIGATORIO
+                .timeoutMillis(2000)       // 🔥 EVITA BLOQUEOS
+                .build();
+
+        jedisCluster = new JedisCluster(nodes, clientConfig);
     }
 
-    public static Jedis getResource(){
-        if (jedisPool == null) {
+    public static JedisCluster getClient() {
+        if (jedisCluster == null) {
             init();
+            System.out.println("Redis client initialized");
         }
-        return jedisPool.getResource();
+        return jedisCluster;
     }
 }

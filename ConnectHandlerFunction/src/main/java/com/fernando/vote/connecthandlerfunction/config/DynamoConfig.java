@@ -19,7 +19,7 @@ public class DynamoConfig {
 
         if (localstackConnection == null || localstackConnection.isBlank()) {
             amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
-                    .withRegion(Regions.valueOf(region))
+                    .withRegion(Regions.fromName(region))
                     .build();
         } else {
             amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()

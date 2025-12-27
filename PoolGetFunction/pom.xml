@@ -90,10 +90,19 @@
           <artifactId>jackson-annotations</artifactId>
           <version>2.16.2</version>
       </dependency>
+<!--      <dependency>-->
+<!--          <groupId>com.amazonaws</groupId>-->
+<!--          <artifactId>aws-java-sdk-dynamodb</artifactId>-->
+<!--          <version>1.12.564</version>-->
+<!--      </dependency>-->
       <dependency>
-          <groupId>com.amazonaws</groupId>
-          <artifactId>aws-java-sdk-dynamodb</artifactId>
-          <version>1.12.564</version>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>dynamodb-enhanced</artifactId>
+      </dependency>
+
+      <dependency>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>dynamodb</artifactId>
       </dependency>
       <dependency>
           <groupId>org.hibernate.validator</groupId>

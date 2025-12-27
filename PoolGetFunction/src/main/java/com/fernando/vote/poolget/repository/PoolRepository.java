@@ -1,6 +1,5 @@
 package com.fernando.vote.poolget.repository;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.fernando.vote.poolget.models.Pool;
 
 

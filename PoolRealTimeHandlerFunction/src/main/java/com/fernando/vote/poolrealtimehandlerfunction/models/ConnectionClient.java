@@ -1,4 +1,4 @@
-package com.fernando.vote.connecthandlerfunction.models;
+package com.fernando.vote.poolrealtimehandlerfunction.models;
 
 import lombok.*;
 

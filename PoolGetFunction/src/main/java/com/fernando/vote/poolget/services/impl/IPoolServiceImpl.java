@@ -2,6 +2,7 @@ package com.fernando.vote.poolget.services.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fernando.vote.poolget.config.DynamoConfig;
 import com.fernando.vote.poolget.models.Pool;
 import com.fernando.vote.poolget.repository.CacheRepository;
 import com.fernando.vote.poolget.repository.PoolRepository;
@@ -19,21 +20,28 @@ public class IPoolServiceImpl implements IPoolService {
         cacheRepository=new CacheRepositoryImpl();
     }
     @Override
-    public Pool getPoolById(String id) {
+    public Pool getPoolById(String id) throws JsonProcessingException {
         String key="pool:"+id;
         Pool pool=null;
         ObjectMapper obj=new ObjectMapper();
-        try{
-            if(Boolean.TRUE.equals(cacheRepository.existsKey(key))){
-                String strPool=cacheRepository.getSet(key);
-                pool=obj.readValue(strPool,Pool.class);
-            }else{
-                 pool=poolRepository.getPoolByIdWithDetails(id);
-                 cacheRepository.createSet(key,obj.writeValueAsString(pool),3600);
-            }
-            return pool;
-        }catch (NoSuchElementException | JsonProcessingException e){
-           throw new RuntimeException(e.getMessage());
+        //DynamoConfig.getClient();
+//        try{
+//
+//        }catch (NoSuchElementException | JsonProcessingException e){
+//            e.printStackTrace();
+//           throw new RuntimeException(e.getMessage());
+//        }
+
+        if(Boolean.TRUE.equals(cacheRepository.existsKey(key))){
+            System.out.println("paso1");
+            String strPool=cacheRepository.getSet(key);
+            pool=obj.readValue(strPool,Pool.class);
+       }else{
+            System.out.println("paso2");
+            System.out.println("LOCALSTACK_CONNECTION = " + System.getenv("LOCALSTACK_CONNECTION"));
+            pool=poolRepository.getPoolByIdWithDetails(id);
+            cacheRepository.createSet(key,obj.writeValueAsString(pool),3600);
         }
+        return pool;
     }
 }

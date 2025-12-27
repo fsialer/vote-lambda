@@ -1,10 +1,10 @@
-package com.fernando.vote.connecthandlerfunction.config;
+package com.fernando.vote.poolget.config;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-public class RedisConfig {
+public class Redis2Config {
     private static JedisPool jedisPool;
 
     private static void init() {

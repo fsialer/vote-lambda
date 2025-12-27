@@ -8,10 +8,10 @@ import com.fernando.vote.poolcreate.models.Option;
 import com.fernando.vote.poolcreate.models.Pool;
 import com.fernando.vote.poolcreate.repository.PoolRepository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.*;
 
 public class PoolRepositoryImpl implements PoolRepository {
     private final AmazonDynamoDB dynamoDB;
@@ -31,17 +31,18 @@ public class PoolRepositoryImpl implements PoolRepository {
     public void savePoolTransact(Pool pool) {
         try {
             List<TransactWriteItem> actions = new ArrayList<>();
-            Map<String, AttributeValue> pollItem = new HashMap<>();
-            pollItem.put("PK",new AttributeValue(pool.getPoolId()));
-            pollItem.put("SK", new AttributeValue("METADATA"));
-            pollItem.put("question", new AttributeValue(pool.getQuestion()));
-            pollItem.put("active", new AttributeValue().withBOOL(true));
-            pollItem.put("ttl", new AttributeValue().withN(String.valueOf(currentTime/1000 + (currentTime/1000)+86400)));
+            Map<String, AttributeValue> poolItem = new HashMap<>();
+            poolItem.put("PK",new AttributeValue(pool.getPoolId()));
+            poolItem.put("SK", new AttributeValue("METADATA"));
+            poolItem.put("question", new AttributeValue(pool.getQuestion()));
+            poolItem.put("active", new AttributeValue().withBOOL(true));
+            poolItem.put("dateClosed", new AttributeValue().withS(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(10).toString()));
+            poolItem.put("ttl", new AttributeValue().withN(String.valueOf(currentTime/1000 + (currentTime/1000)+86400)));
 
             actions.add(new TransactWriteItem()
                     .withPut(new Put()
                             .withTableName(tableName)
-                            .withItem(pollItem)
+                            .withItem(poolItem)
                     ));
 
             for (Option option : pool.getOptions()) {

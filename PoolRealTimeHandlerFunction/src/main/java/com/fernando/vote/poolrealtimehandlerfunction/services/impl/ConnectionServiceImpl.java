@@ -1,11 +1,11 @@
-package com.fernando.vote.connecthandlerfunction.services.impl;
+package com.fernando.vote.poolrealtimehandlerfunction.services.impl;
 
-import com.fernando.vote.connecthandlerfunction.events.WebSocketRepository;
-import com.fernando.vote.connecthandlerfunction.events.impl.WebSocketRepositoryImpl;
-import com.fernando.vote.connecthandlerfunction.models.ConnectionClient;
-import com.fernando.vote.connecthandlerfunction.repository.ConnectionRepository;
-import com.fernando.vote.connecthandlerfunction.repository.impl.ConnectionRepositoryImpl;
-import com.fernando.vote.connecthandlerfunction.services.ConnectionService;
+import com.fernando.vote.poolrealtimehandlerfunction.events.WebSocketRepository;
+import com.fernando.vote.poolrealtimehandlerfunction.events.impl.WebSocketRepositoryImpl;
+import com.fernando.vote.poolrealtimehandlerfunction.models.ConnectionClient;
+import com.fernando.vote.poolrealtimehandlerfunction.repository.ConnectionRepository;
+import com.fernando.vote.poolrealtimehandlerfunction.repository.impl.ConnectionRepositoryImpl;
+import com.fernando.vote.poolrealtimehandlerfunction.services.ConnectionService;
 
 import java.util.List;
 
@@ -26,6 +26,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Override
     public void sendConnections(List<String> connections, String result) {
         for (String conn : connections) {
+            System.out.println("Sending to connection: " + conn+" the result: "+result);
             webSocketRepository.postConnection(conn,result);
         }
     }

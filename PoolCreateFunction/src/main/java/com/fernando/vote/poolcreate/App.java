@@ -62,13 +62,20 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
             Pool resp= iPoolService.createPool(mapper.poolRequestToPool(rq));
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(201)
-                    .withHeaders(Map.of("Content-Type","application/json"))
+                    .withHeaders(Map.of("Content-Type","application/json",
+                            "Access-Control-Allow-Origin", "*",
+                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+                            "Access-Control-Allow-Methods", "OPTIONS,POST"))
                     .withBody(objectMapper.writeValueAsString(resp));
 
-        } catch (JsonProcessingException e) {
+        } catch (JsonProcessingException|RuntimeException e) {
+            e.printStackTrace();
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(500)
-                    .withHeaders(Map.of("Content-Type", "application/json"))
+                    .withHeaders(Map.of("Content-Type", "application/json",
+                            "Access-Control-Allow-Origin", "*",
+                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+                            "Access-Control-Allow-Methods", "OPTIONS,POST"))
                     .withBody("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }

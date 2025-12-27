@@ -13,5 +13,6 @@ public class Pool {
     private String poolId;
     private String question;
     private Boolean active;
+    private String dateClosed;
     private List<Option> options;
 }
