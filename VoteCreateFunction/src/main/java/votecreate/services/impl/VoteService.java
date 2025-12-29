@@ -4,7 +4,7 @@ import votecreate.event.QueueRepository;
 import votecreate.event.SnsRepository;
 import votecreate.event.impl.QueueRepositoryImpl;
 import votecreate.event.impl.SnsRepositoryImpl;
-import votecreate.models.Vote;
+import votecreate.dto.Vote;
 import votecreate.repository.CacheRepository;
 import votecreate.repository.impl.CacheRepositoryImpl;
 import votecreate.services.IVoteService;
@@ -19,9 +19,9 @@ public class VoteService implements IVoteService {
         snsRepository=new SnsRepositoryImpl();
     }
     @Override
-    public Long saveVote(Vote vote) {
+    public void saveVote(Vote vote) {
         String key="votes:"+vote.getPoolId();
-        return cacheRepository.hashIncrement(key,1,vote.getOptionId());
+        cacheRepository.hashIncrement(key,1,vote.getOptionId());
     }
 
     @Override

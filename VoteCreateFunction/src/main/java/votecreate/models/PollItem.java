@@ -1,12 +1,14 @@
 package votecreate.models;
 
+import lombok.Setter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+@Setter
 @DynamoDbBean
-public class PolllItem {
+public class PollItem {
     private String pk;
     private String sk;
     private String question;
@@ -27,23 +29,10 @@ public class PolllItem {
         return sk;
     }
 
-    public void setPk(String pk) {
-        this.pk = pk;
-    }
-
-
-
-    public void setSk(String sk) {
-        this.sk = sk;
-    }
 
     @DynamoDbAttribute("question")
     public String getQuestion() {
         return question;
-    }
-
-    public void setQuestion(String question) {
-        this.question = question;
     }
 
     @DynamoDbAttribute("active")
@@ -51,25 +40,14 @@ public class PolllItem {
         return active;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
     @DynamoDbAttribute("text")
     public String getText() {
         return text;
     }
 
-    public void setText(String text) {
-        this.text = text;
-    }
-
     @DynamoDbAttribute("votes")
     public String getVotes() {
         return votes;
-    }
-    public void setVotes(String votes) {
-        this.votes = votes;
     }
 
     @DynamoDbAttribute("dateClosed")
@@ -77,7 +55,4 @@ public class PolllItem {
         return dateClosed;
     }
 
-    public void setDateClosed(String dateClosed) {
-        this.dateClosed = dateClosed;
-    }
 }

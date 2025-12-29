@@ -11,4 +11,18 @@ public class CacheRepositoryImpl implements CacheRepository {
             return jedis.hincrBy(key,attribute,value);
         }
     }
+
+    @Override
+    public String getSet(String key) {
+        try(Jedis jedis = RedisConfig.getResource()) {
+            return jedis.get(key);
+        }
+    }
+
+    @Override
+    public Boolean existsKey(String key) {
+        try(Jedis jedis = RedisConfig.getResource()) {
+            return jedis.exists(key);
+        }
+    }
 }

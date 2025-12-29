@@ -1,4 +1,4 @@
-package votecreate.models;
+package votecreate.dto;
 
 import lombok.*;
 

@@ -1,4 +1,4 @@
-package com.fernando.vote.poolget.config;
+package votecreate.config;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;

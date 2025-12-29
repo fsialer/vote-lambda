@@ -5,29 +5,34 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import votecreate.mapper.VoteMapper;
-import votecreate.models.VoteRequest;
+import votecreate.dto.VoteRequest;
+import votecreate.services.IPollService;
 import votecreate.services.IVoteService;
+import votecreate.services.impl.PollService;
 import votecreate.services.impl.VoteService;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private final ObjectMapper objectMapper=new ObjectMapper();
-    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    private final Validator validator = factory.getValidator();
+    private static final Map<String, String> COMMON_HEADERS = Map.of(
+            "Content-Type", "application/json",
+            "Access-Control-Allow-Origin", "*",
+            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Methods", "OPTIONS,POST"
+    );
+
+    private final ObjectMapper objectMapper;
     private final IVoteService iVoteService;
+    private final IPollService iPollService;
+    private final VoteMapper voteMapper;
 
     public App() {
-        this.iVoteService = saveVoteUseCase();
+        iVoteService = saveVoteUseCase();
+        iPollService=new PollService();
+        voteMapper=new VoteMapper();
+        objectMapper=new ObjectMapper();
     }
 
     protected IVoteService saveVoteUseCase() {
@@ -36,47 +41,29 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent apiGatewayProxyRequestEvent, Context context) {
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", "application/json");
         try {
-            String body=apiGatewayProxyRequestEvent.getBody(); // Aqui obtenemos el cuerpo de la solicitud
-            VoteRequest rq=objectMapper.readValue(body,VoteRequest.class);
-            //Validar campos
-            Set<ConstraintViolation<VoteRequest>> violations = validator.validate(rq);
-            if(!violations.isEmpty()){
-                String errors=violations.stream()
-                        .map(ConstraintViolation::getMessage)
-                        .collect(Collectors.joining(","));
-                return new APIGatewayProxyResponseEvent()
-                        .withStatusCode(400)
-                        .withHeaders(headers)
-                        .withBody("{\"error\": \""+errors+"\"}");
-            }
-            VoteMapper voteMapper=new VoteMapper();
-            Long vote= iVoteService.saveVote(voteMapper.voteRequestToVote(rq));
+            String body=apiGatewayProxyRequestEvent.getBody();
+            VoteRequest rq=voteMapper.bodyToVoteRequest(body);
+            iPollService.verifyDateClosed(rq.getPoolId());
+            iVoteService.saveVote(voteMapper.voteRequestToVote(rq));
             iVoteService.sendMessage(voteMapper.voteRequestToVote(rq));
             iVoteService.publishMessage(voteMapper.voteRequestToVote(rq));
-            // Respuesta exitosa
-            Map<String,String> resp= new HashMap<>();
-            resp.put("vote",vote.toString());
-            resp.put("message","Vote sent successfully");
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(201)
-                    .withHeaders(Map.of("Content-Type","application/json",
-                            "Access-Control-Allow-Origin", "*",
-                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-                            "Access-Control-Allow-Methods", "OPTIONS,POST"))
-                    .withBody(objectMapper.writeValueAsString(resp));
-
+            return buildResponse(204,Map.of("message","Vote sent successfully"));
 
         }catch (Exception e){
+            context.getLogger().log(e.getMessage());
+            return buildResponse(500,Map.of("error",e.getMessage()));
+        }
+    }
+
+    private APIGatewayProxyResponseEvent buildResponse(int statusCode, Object body) {
+        try {
             return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(500)
-                    .withHeaders(Map.of("Content-Type","application/json",
-                            "Access-Control-Allow-Origin", "*",
-                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-                            "Access-Control-Allow-Methods", "OPTIONS,POST"))
-                    .withBody("{\"error\": \"" + e.getMessage() + "\"}");
+                    .withStatusCode(statusCode)
+                    .withHeaders(COMMON_HEADERS)
+                    .withBody(objectMapper.writeValueAsString(body));
+        } catch (Exception e) {
+            return new APIGatewayProxyResponseEvent().withStatusCode(500);
         }
     }
 }
