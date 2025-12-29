@@ -24,21 +24,11 @@ public class IPoolServiceImpl implements IPoolService {
         String key="pool:"+id;
         Pool pool=null;
         ObjectMapper obj=new ObjectMapper();
-        //DynamoConfig.getClient();
-//        try{
-//
-//        }catch (NoSuchElementException | JsonProcessingException e){
-//            e.printStackTrace();
-//           throw new RuntimeException(e.getMessage());
-//        }
 
         if(Boolean.TRUE.equals(cacheRepository.existsKey(key))){
-            System.out.println("paso1");
             String strPool=cacheRepository.getSet(key);
             pool=obj.readValue(strPool,Pool.class);
        }else{
-            System.out.println("paso2");
-            System.out.println("LOCALSTACK_CONNECTION = " + System.getenv("LOCALSTACK_CONNECTION"));
             pool=poolRepository.getPoolByIdWithDetails(id);
             cacheRepository.createSet(key,obj.writeValueAsString(pool),3600);
         }

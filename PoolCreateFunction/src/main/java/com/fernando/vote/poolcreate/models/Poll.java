@@ -9,8 +9,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Pool {
-    private String poolId;
+public class Poll {
+    private String pollId;
     private String question;
     private Set<Option> options;
 }

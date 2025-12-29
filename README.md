@@ -9,7 +9,7 @@ Sistema de votaciones distribuido construido con AWS Lambda, DynamoDB, Redis y S
 │ VoteCreate      │    │ PoolCreate      │    │ PoolGet         │
 │ Function        │    │ Function        │    │ Function        │
 │                 │    │                 │    │                 │
-│ POST /vote/     │    │ POST /pool/     │    │ GET /pool/{id}  │
+│ POST /vote/     │    │ POST /poll/     │    │ GET /poll/{id}  │
 │ create          │    │ create          │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
        │                       │                       │
@@ -52,7 +52,7 @@ Sistema de votaciones distribuido construido con AWS Lambda, DynamoDB, Redis y S
 ### 2. PoolCreateFunction
 **Propósito**: Crear pools de votación basados en encuestas existentes.
 
-**Endpoint**: `POST /pool/create`
+**Endpoint**: `POST /poll/create`
 
 **Request Body**:
 ```json
@@ -63,14 +63,14 @@ Sistema de votaciones distribuido construido con AWS Lambda, DynamoDB, Redis y S
 ```
 
 **Funcionalidad**:
-- Copia opciones de encuesta a pool
+- Copia opciones de encuesta a poll
 - Inicializa contadores de votos
 - Configura TTL para expiración automática
 
 ### 3. PoolGetFunction
 **Propósito**: Obtener resultados de votación en tiempo real.
 
-**Endpoint**: `GET /pool/{poolId}`
+**Endpoint**: `GET /poll/{poolId}`
 
 **Response**:
 ```json
@@ -221,7 +221,7 @@ sam local invoke VoteCreateFunction --event events/send-vote.json
 | POOL#{id} | OP_{optId}_vote | votes, ttl            | Votes de encuesta    |
 
 ### Patrones de Acceso
-- **Crear pool**: Transacción para POOL_ + opciones
+- **Crear poll**: Transacción para POOL_ + opciones
 - **Votar**: Incremento atómico en POOL_
 - **Obtener resultados**: Query por PK=POOL_{id}
 
