@@ -57,12 +57,19 @@ public class PoolRepositoryImpl implements PoolRepository {
                         .active(item.getActive()) // si lo mapeaste
                         .dateClosed(item.getDateClosed())
                         .build();
+            }else if (item.getSk().startsWith("OP") && !item.getSk().endsWith("VOTE")) {
+                // Mapear el ítem de opción
+                list.add(Option.builder()
+                        .optionId(item.getSk())
+                        .text(item.getText()) // Asumiendo que el texto está en 'question'
+                        .build());
             }
         }
 
         if (pool == null) {
             throw new NoSuchElementException("Pool not found: " + pk);
         }
+        pool.setOptions(list.stream().toList());
         return pool;
     }
 }
