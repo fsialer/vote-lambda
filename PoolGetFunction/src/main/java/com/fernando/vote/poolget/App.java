@@ -5,7 +5,8 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fernando.vote.poolget.models.Pool;
+import com.fernando.vote.poolget.dto.Poll;
+import com.fernando.vote.poolget.exceptions.PollNotFoundException;
 import com.fernando.vote.poolget.services.IPoolService;
 import com.fernando.vote.poolget.services.impl.IPoolServiceImpl;
 
@@ -16,11 +17,16 @@ import java.util.Map;
  */
 public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
+    private static final Map<String, String> COMMON_HEADERS = Map.of(
+            "Content-Type","application/json",
+            "Access-Control-Allow-Origin", "*",
+            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Methods", "OPTIONS,GET"
+    );
     private final ObjectMapper objectMapper=new ObjectMapper();
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent apiGatewayProxyRequestEvent, Context context) {
-        // Capturar el parámetro de ruta "id" desde pathParameters
         Map<String, String> pathParams = apiGatewayProxyRequestEvent.getPathParameters();
 
         if (pathParams == null || !pathParams.containsKey("id")) {
@@ -29,26 +35,27 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
         String poolId = pathParams.get("id");
 
         try {
-             IPoolService poolService=new IPoolServiceImpl();
-             //poolService.getPoolById(poolId);
-            Pool resp= poolService.getPoolById(poolId);
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(200)
-                    .withHeaders(Map.of("Content-Type","application/json",
-                            "Access-Control-Allow-Origin", "*",
-                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-                            "Access-Control-Allow-Methods", "OPTIONS,GET"))
-                    .withBody(objectMapper.writeValueAsString(resp));
+            IPoolService poolService=new IPoolServiceImpl();
+            Poll resp= poolService.getPoolById(poolId);
+            return buildResponse(200,resp);
         } catch (Exception e) {
-            e.printStackTrace();
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(500)
-                    .withHeaders(Map.of("Content-Type", "application/json",
-                            "Access-Control-Allow-Origin", "*",
-                            "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-                            "Access-Control-Allow-Methods", "OPTIONS,GET"))
-                    .withBody("{\"error\": \"" + e.getMessage() + "\"}");
+            context.getLogger().log(e.getMessage());
+            if(e instanceof PollNotFoundException){
+                return buildResponse(404,Map.of("error",e.getMessage()));
+            }
+            return buildResponse(500,Map.of("error",e.getMessage()));
         }
 
+    }
+
+    private APIGatewayProxyResponseEvent buildResponse(int statusCode, Object body) {
+        try {
+            return new APIGatewayProxyResponseEvent()
+                    .withStatusCode(statusCode)
+                    .withHeaders(COMMON_HEADERS)
+                    .withBody(objectMapper.writeValueAsString(body));
+        } catch (Exception e) {
+            return new APIGatewayProxyResponseEvent().withStatusCode(500);
+        }
     }
 }

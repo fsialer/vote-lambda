@@ -1,4 +1,4 @@
-package com.fernando.vote.poolget.models;
+package com.fernando.vote.poolget.dto;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Pool {
+public class Poll {
     private String poolId;
     private String question;
     private Boolean active;

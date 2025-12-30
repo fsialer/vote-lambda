@@ -13,7 +13,7 @@ public class PoolItem {
     private Boolean active;
     private String dateClosed;
     private String text;
-    private String votes;
+    private long votes;
 
     @DynamoDbPartitionKey
     @DynamoDbAttribute("PK")
@@ -65,10 +65,10 @@ public class PoolItem {
     }
 
     @DynamoDbAttribute("votes")
-    public String getVotes() {
+    public long getVotes() {
         return votes;
     }
-    public void setVotes(String votes) {
+    public void setVotes(long votes) {
         this.votes = votes;
     }
 

@@ -1,10 +1,8 @@
 package com.fernando.vote.poolget.repository.impl;
 
-//import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-//import com.amazonaws.services.dynamodbv2.model.*;
 import com.fernando.vote.poolget.config.DynamoConfig;
-import com.fernando.vote.poolget.models.Option;
-import com.fernando.vote.poolget.models.Pool;
+import com.fernando.vote.poolget.dto.Option;
+import com.fernando.vote.poolget.dto.Poll;
 import com.fernando.vote.poolget.models.PoolItem;
 import com.fernando.vote.poolget.repository.PoolRepository;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -30,7 +28,7 @@ public class PoolRepositoryImpl implements PoolRepository {
     }
 
     @Override
-    public Pool  getPoolByIdWithDetails(String pk) {
+    public Poll getPoolByIdWithDetails(String pk) {
         // ASUMIMOS que tienes inicializado el enhancedClient
         DynamoDbTable<PoolItem> poolTable = enhancedClient.table(tableName, TableSchema.fromBean(PoolItem.class));
 
@@ -45,13 +43,14 @@ public class PoolRepositoryImpl implements PoolRepository {
         Iterable<PoolItem> items = poolTable.query(r -> r.queryConditional(queryConditional)).items();
 
         // 3. Procesar los resultados
-        Pool pool = null;
-        Set<Option> list = new HashSet<>();
+        Poll poll = null;
+        Map<String, Option> optionMap = new HashMap<>();
 
         for (PoolItem item : items) {
+            String sk = item.getSk();
             if (item.getSk().equals("METADATA")) {
                 // Mapear el ítem de metadata al objeto Pool
-                pool = Pool.builder()
+                poll = Poll.builder()
                         .poolId(item.getPk())
                         .question(item.getQuestion())
                         .active(item.getActive()) // si lo mapeaste
@@ -59,17 +58,27 @@ public class PoolRepositoryImpl implements PoolRepository {
                         .build();
             }else if (item.getSk().startsWith("OP") && !item.getSk().endsWith("VOTE")) {
                 // Mapear el ítem de opción
-                list.add(Option.builder()
-                        .optionId(item.getSk())
-                        .text(item.getText()) // Asumiendo que el texto está en 'question'
-                        .build());
+                optionMap.put(
+                        sk,
+                        Option.builder()
+                                .optionId(sk)
+                                .text(item.getText())
+                                .votes(0)
+                                .build()
+                );
+            }else if (sk != null && sk.endsWith("VOTE")) {
+                String optionId = sk.replace("_VOTE", "");
+                optionMap.computeIfPresent(
+                        optionId,
+                        (k, opt) -> opt.toBuilder().votes(item.getVotes()).build()
+                );
             }
         }
 
-        if (pool == null) {
-            throw new NoSuchElementException("Pool not found: " + pk);
+        if(poll != null && !optionMap.isEmpty()){
+            poll.setOptions(new ArrayList<>(optionMap.values()));
         }
-        pool.setOptions(list.stream().toList());
-        return pool;
+
+        return poll;
     }
 }

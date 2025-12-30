@@ -1,4 +1,4 @@
-package com.fernando.vote.poolget.models;
+package com.fernando.vote.poolget.dto;
 
 import lombok.*;
 
@@ -6,8 +6,9 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class Option {
     private String optionId;
     private String text;
+    private long votes;
 }
