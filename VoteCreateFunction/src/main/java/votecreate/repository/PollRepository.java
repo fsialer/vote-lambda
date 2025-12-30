@@ -1,7 +1,6 @@
 package votecreate.repository;
 
-import redis.clients.jedis.util.Pool;
-import votecreate.models.Poll;
+import votecreate.dto.Poll;
 
 public interface PollRepository {
     Poll getPoolByPk(String pk);

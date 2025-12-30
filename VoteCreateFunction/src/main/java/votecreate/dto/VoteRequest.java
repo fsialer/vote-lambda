@@ -9,8 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class VoteRequest {
-    @JsonProperty("pool_id")
-    private String poolId;
+    @JsonProperty("poll_id")
+    private String pollId;
     @JsonProperty("option_id")
     private String optionId;
 }

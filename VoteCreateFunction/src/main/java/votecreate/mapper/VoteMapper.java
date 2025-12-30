@@ -1,14 +1,15 @@
 package votecreate.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import votecreate.dto.Vote;
 import votecreate.dto.VoteRequest;
-import votecreate.models.Poll;
+import votecreate.dto.Poll;
 
 public class VoteMapper {
     public Vote voteRequestToVote(VoteRequest rq){
         return Vote.builder()
-                .poolId(rq.getPoolId())
+                .poolId(rq.getPollId())
                 .optionId(rq.getOptionId())
                 .build();
     }
@@ -25,8 +26,9 @@ public class VoteMapper {
     public Poll stringToPoll(String str){
         try{
             ObjectMapper obj=new ObjectMapper();
+
             return obj.readValue(str, Poll.class);
-        }catch (Exception e){
+        }catch (JsonProcessingException e){
             return null;
         }
     }

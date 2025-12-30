@@ -1,6 +1,8 @@
-package votecreate.models;
+package votecreate.dto;
 
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,6 +14,7 @@ public class Poll {
     private String question;
     private Boolean active;
     private String dateClosed;
+    private List<Option> options;
 
     @Override
     public String toString() {

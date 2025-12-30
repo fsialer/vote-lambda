@@ -6,7 +6,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import votecreate.config.DynamoConfig;
-import votecreate.models.Poll;
+import votecreate.dto.Poll;
 import votecreate.models.PollItem;
 import votecreate.repository.PollRepository;
 
@@ -36,7 +36,7 @@ public class PollRepositoryImpl implements PollRepository {
             if (item.getSk().equals("METADATA")) {
                 // Mapear el ítem de metadata al objeto Pool
                 poll = Poll.builder()
-                        .poolId(item.getPk())
+                        .pollId(item.getPk())
                         .question(item.getQuestion())
                         .active(item.getActive()) // si lo mapeaste
                         .dateClosed(item.getDateClosed())

@@ -1,12 +1,9 @@
 package votecreate.services.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import votecreate.dto.Vote;
 import votecreate.exceptions.LimitTimeVoteException;
 import votecreate.exceptions.PollNotFoundException;
 import votecreate.mapper.VoteMapper;
-import votecreate.models.Poll;
+import votecreate.dto.Poll;
 import votecreate.repository.CacheRepository;
 import votecreate.repository.PollRepository;
 import votecreate.repository.impl.CacheRepositoryImpl;
@@ -14,7 +11,6 @@ import votecreate.repository.impl.PollRepositoryImpl;
 import votecreate.services.IPollService;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 
 public class PollService implements IPollService {
     private final PollRepository pollRepository;
@@ -33,7 +29,9 @@ public class PollService implements IPollService {
 
         if(Boolean.TRUE.equals(cacheRepository.existsKey(key))){
             String strPool=cacheRepository.getSet(key);
+            System.out.println(strPool);
             poll=voteMapper.stringToPoll(strPool);
+            System.out.println(poll.toString());
         }else{
             poll=pollRepository.getPoolByPk(pollId);
             if(poll==null){
