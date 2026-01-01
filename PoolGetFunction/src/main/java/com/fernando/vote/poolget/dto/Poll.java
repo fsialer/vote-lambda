@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class Poll {
-    private String poolId;
+    private String pollId;
     private String question;
     private Boolean active;
     private String dateClosed;

@@ -18,7 +18,7 @@ import java.util.Map;
 public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Map<String, String> COMMON_HEADERS = Map.of(
-            "Content-Type","application/json",
+            "Content-Type", "application/json",
             "Access-Control-Allow-Origin", "*",
             "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
             "Access-Control-Allow-Methods", "OPTIONS,GET"
@@ -29,10 +29,10 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent apiGatewayProxyRequestEvent, Context context) {
         Map<String, String> pathParams = apiGatewayProxyRequestEvent.getPathParameters();
 
-        if (pathParams == null || !pathParams.containsKey("id")) {
-            throw new RuntimeException("Missing path parameter 'id'");
+        if (pathParams == null || !pathParams.containsKey("pollId")) {
+            throw new RuntimeException("Missing path parameter 'pollId'");
         }
-        String poolId = pathParams.get("id");
+        String poolId = pathParams.get("pollId");
 
         try {
             IPoolService poolService=new IPoolServiceImpl();
