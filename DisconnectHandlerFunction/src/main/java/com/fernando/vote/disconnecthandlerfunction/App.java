@@ -21,7 +21,7 @@ public class App implements RequestHandler<Map<String, Object>, Void> {
                         .get("connectionId");
 
         connectionService.deleteConnection(connectionId);
-        System.out.println("Conexion cerrada: " + connectionId);
+        context.getLogger().log("Conexion cerrada: " + connectionId);
         return null;
     }
 
