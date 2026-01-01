@@ -1,5 +1,6 @@
 package com.fernando.vote.workerfunction.services.impl;
 
+import com.fernando.vote.workerfunction.models.PollId;
 import com.fernando.vote.workerfunction.repository.CacheRepository;
 import com.fernando.vote.workerfunction.repository.VoteRepository;
 import com.fernando.vote.workerfunction.repository.impl.CacheRepositoryImpl;
@@ -20,11 +21,11 @@ public class VoteServiceImpl implements VoteService {
     }
 
     @Override
-    public void syncVote(Set<String> pools) {
+    public void syncVote(Set<PollId> pools) {
         Map<String,Map<String,String>> votes=new HashMap<>();
         pools.forEach(pool->{
-            var voteHash=cacheRepository.getHashSet("votes:"+pool);
-            votes.put(pool,voteHash);
+            var voteHash=cacheRepository.getHashSet("votes:"+pool.getPollId());
+            votes.put(pool.getPollId(),voteHash);
         });
         voteRepository.batchVote(votes);
     }
