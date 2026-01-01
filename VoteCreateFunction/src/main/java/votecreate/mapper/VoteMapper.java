@@ -9,7 +9,7 @@ import votecreate.dto.Poll;
 public class VoteMapper {
     public Vote voteRequestToVote(VoteRequest rq){
         return Vote.builder()
-                .poolId(rq.getPollId())
+                .pollId(rq.getPollId())
                 .optionId(rq.getOptionId())
                 .build();
     }

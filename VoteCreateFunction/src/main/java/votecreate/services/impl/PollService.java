@@ -29,9 +29,7 @@ public class PollService implements IPollService {
 
         if(Boolean.TRUE.equals(cacheRepository.existsKey(key))){
             String strPool=cacheRepository.getSet(key);
-            System.out.println(strPool);
             poll=voteMapper.stringToPoll(strPool);
-            System.out.println(poll.toString());
         }else{
             poll=pollRepository.getPoolByPk(pollId);
             if(poll==null){
@@ -40,7 +38,7 @@ public class PollService implements IPollService {
         }
         LocalDateTime now= LocalDateTime.now();
         if(now.isAfter(LocalDateTime.parse(poll.getDateClosed()))){
-            throw new LimitTimeVoteException("The poll is closed.");
+            throw new LimitTimeVoteException("The poll sis closed.");
         }
     }
 }

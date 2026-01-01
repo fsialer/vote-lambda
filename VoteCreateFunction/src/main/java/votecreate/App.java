@@ -46,8 +46,7 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
             VoteRequest rq=voteMapper.bodyToVoteRequest(body);
             iPollService.verifyDateClosed(rq.getPollId());
             iVoteService.saveVote(voteMapper.voteRequestToVote(rq));
-            iVoteService.sendMessage(voteMapper.voteRequestToVote(rq));
-            iVoteService.publishMessage(voteMapper.voteRequestToVote(rq));
+            iVoteService.publishVote(voteMapper.voteRequestToVote(rq));
             return buildResponse(204,Map.of("message","Vote sent successfully"));
 
         }catch (Exception e){

@@ -13,7 +13,7 @@ services:
     image: localstack/localstack:latest
     container_name: localstack
     environment:
-      - SERVICES=apigateway,lambda,sqs,dynamodb,s3,sns, iam, sts,ec2
+      - SERVICES=apigateway,lambda,sqs,dynamodb,s3,sns, iam, sts
       - DEBUG=1
       - DATA_DIR=/tmp/localstack_data       # persistencia en volumen
       - TMPDIR=/tmp/localstack_tmp          # tmp solo dentro del contenedor

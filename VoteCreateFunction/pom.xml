@@ -16,6 +16,7 @@
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <maven.compiler.source>21</maven.compiler.source>
       <maven.compiler.target>21</maven.compiler.target>
+      <aws.sdk.bom.version>2.25.47</aws.sdk.bom.version>
   </properties>
 
     <dependencyManagement>
@@ -23,7 +24,7 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
-                <version>2.25.47</version>
+                <version>${aws.sdk.bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -59,11 +60,7 @@
       </dependency>
       <dependency>
           <groupId>software.amazon.awssdk</groupId>
-          <artifactId>sqs</artifactId>
-      </dependency>
-      <dependency>
-          <groupId>software.amazon.awssdk</groupId>
-          <artifactId>sns</artifactId>
+          <artifactId>eventbridge</artifactId>
       </dependency>
       <dependency>
           <groupId>software.amazon.awssdk</groupId>
