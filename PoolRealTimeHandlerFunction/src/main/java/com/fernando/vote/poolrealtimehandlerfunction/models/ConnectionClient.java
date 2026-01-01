@@ -9,5 +9,5 @@ import lombok.*;
 @Builder
 public class ConnectionClient {
     private String connectionId;
-    private String poolId;
+    private String pollId;
 }

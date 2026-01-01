@@ -7,7 +7,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 @DynamoDbBean
 public class ConnectionItem {
     private String connectionId;
-    private String poolId;
+    private String pollId;
 
     @DynamoDbPartitionKey
     @DynamoDbAttribute("connectionId")
@@ -19,12 +19,12 @@ public class ConnectionItem {
         this.connectionId = connectionId;
     }
 
-    @DynamoDbAttribute("poolId")
-    public String getPoolId() {
-        return poolId;
+    @DynamoDbAttribute("pollId")
+    public String getPollId() {
+        return pollId;
     }
 
-    public void setPoolId(String poolId) {
-        this.poolId = poolId;
+    public void setPollId(String pollId) {
+        this.pollId = pollId;
     }
 }

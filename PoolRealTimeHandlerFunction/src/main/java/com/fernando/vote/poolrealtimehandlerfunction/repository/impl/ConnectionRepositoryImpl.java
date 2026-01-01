@@ -24,12 +24,12 @@ public class ConnectionRepositoryImpl implements ConnectionRepository {
     }
 
     @Override
-    public List<ConnectionClient> getConnections(String poolId) {
+    public List<ConnectionClient> getConnections(String pollId) {
         QueryRequest queryRequest = QueryRequest.builder()
                 .tableName(tableName)
-                .indexName("PoolIdIndex")
-                .keyConditionExpression("poolId = :v_poolId")
-                .expressionAttributeValues(Map.of(":v_poolId", AttributeValue.builder().s(poolId).build()))
+                .indexName("PollIdIndex")
+                .keyConditionExpression("pollId = :v_pollId")
+                .expressionAttributeValues(Map.of(":v_pollId", AttributeValue.builder().s(pollId).build()))
                 .build();
 
         QueryResponse result = dynamoDbClient.query(queryRequest);
@@ -41,7 +41,7 @@ public class ConnectionRepositoryImpl implements ConnectionRepository {
         result.items().forEach(item -> {
             connections.add(ConnectionClient.builder()
                 .connectionId(item.get("connectionId").s())
-                .poolId(item.get("poolId").s())
+                .pollId(item.get("pollId").s())
                 .build());
         });
         return connections;

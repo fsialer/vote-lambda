@@ -18,15 +18,13 @@ public class PoolServiceImpl implements PoolService {
     }
 
     @Override
-    public List<Vote> getVotesByPoolId(String poolId) {
-        String key="votes:"+poolId;
+    public List<Vote> getVotesByPoolId(String pollId) {
+        String key="votes:"+ pollId;
         Map<String,String> votes=cacheRepository.getHashSet(key);
         List<Vote> votesList=new ArrayList<>();
         votes.forEach((k,v)->{
             votesList.add(new Vote(k,Long.parseLong(v)));
-            System.out.println("key: "+k+" value: "+v);
         });
         return votesList;
-        //return cacheRepository.getHashSet(key).toString();
     }
 }

@@ -26,7 +26,6 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Override
     public void sendConnections(List<String> connections, String result) {
         for (String conn : connections) {
-            System.out.println("Sending to connection: " + conn+" the result: "+result);
             webSocketRepository.postConnection(conn,result);
         }
     }
